@@ -1,0 +1,91 @@
+body {
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    font-size: 0;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+div.display_container {
+    display: flex;
+    flex-wrap: wrap;
+    width: 60vw;
+    margin: auto;
+}
+
+div.display_container > div.display_item {
+    position: relative;
+    width: 250px;
+    margin: 16px;
+} 
+
+div.display_container > div.display_item > img.streams_img {
+    width: 250px;
+    height: 200px;
+    object-fit: cover;
+    cursor: pointer;
+}
+
+div.display_container > div.display_item > div.viwer_count {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white;
+}
+
+div.display_container > div.display_item > div.streams_type {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background-color: red;
+    color: white;
+    padding: 0 8px;
+}
+
+div.display_container > div.display_item > div.viwer_count > p {
+    margin: 0;
+    font-size: 16px;
+}
+
+div.display_container > div.display_item > div.streams_type > p {
+    font-weight: bold;
+    font-size: 20px;
+    margin: 0;
+}
+
+div.display_container > div.display_item > div.streams_info {
+    display: flex;
+    align-items: center;
+    padding: 16px 8px;
+    background-color: rgba(105, 105, 105, 0.2);
+    color: white;
+}
+
+div.display_container > div.display_item > div.streams_info > img.personal_img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+div.display_container > div.display_item > div.streams_info > div.streams_title_and_name {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 50px;
+    overflow: hidden;
+    margin-left: 8px;  
+}
+
+div.display_container > div.display_item > div.streams_info > div.streams_title_and_name > p {
+    margin: 0;
+    font-size: 16px;
+}
+
+div.display_container > div.display_item > div.streams_info > div.streams_title_and_name > p.streams_title {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
