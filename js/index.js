@@ -1,5 +1,7 @@
 const twitchApiToken = "pky4syvdj6w075a1wjx1btqfnku1ad";
 const twitchApiId = "ihjeqjz71u9r6g5qci317ys1fk5v5j";
+const limit = 20; // 每次抓取的資料量
+let cursor = ""; // 每次抓取資料後會在pagination底下獲取cursor的值，用來做為下一次抓取資料時的位置基準點
 
 // 展示實況圖片、標題、時控主名稱的component
 const display = Vue.component("streamsDisplay",{
@@ -60,20 +62,18 @@ const vm = new Vue({
     el: "#index_app",
     data() {
         return {
-            streamsInfo: [],
-            personalImgs: []
+            streamsInfo: []
         }
     },
     template:`
         <streams-display
             :streamsInfo = "streamsInfo"
-            :personalImgs = "personalImgs"
         />
     `,
     mounted() {
         // 在載入Vue實體完成後使用twitch api拿取目前有在直播的遊戲實況資料共20筆
         // 因為twitch api v5即將在2022年2月底關閉，所以在2021年7月以後將無法使用它而要改用下面這個歸屬於twitch api下拿取live streams資料的api
-        fetch(`https://api.twitch.tv/helix/streams?game=League%20of%20Legends`, {
+        fetch(`https://api.twitch.tv/helix/streams?game=League%20of%20Legends&first=${limit}`, {
             headers: {
                 "Authorization": `Bearer ${twitchApiToken}`,
                 "Client-Id": twitchApiId
@@ -81,7 +81,39 @@ const vm = new Vue({
         })
         .then(res => res.json())
         .then(data => {
+            cursor = data.pagination.cursor;
             this.streamsInfo = data.data;
-        })
+        });
+
+        this.isTheEndOfBottom();
+    },
+    methods: {
+        // 偵測是否滑到底部，如果滑到底部的畫抓取新的20筆資料並且推進streamsInfo裡
+        isTheEndOfBottom() {
+            window.addEventListener("scroll", function() {
+                // this.innerHeight為目前能看到的畫面高度
+                // this.scrollY為目前瀏覽器最上方到目前畫面最上方之間的距離
+                // document.querySelector("body").clientHeight為目前整個網頁的高度
+                if(this.innerHeight + this.scrollY >= document.querySelector("body").clientHeight) {
+                    // first參數為每次要拿幾筆資料，默認值為20，最大值為100
+                    // after會從cursor提供的位置往後抓取資料
+                    // before會從cursor提供的位置往前抓取資料
+                    fetch(`https://api.twitch.tv/helix/streams?game=League%20of%20Legends&first=${limit}&after=${cursor}`, {
+                        headers: {
+                            "Authorization": `Bearer ${twitchApiToken}`,
+                            "Client-Id": twitchApiId
+                        }
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        // 抓取新的cursor
+                        cursor = data.pagination.cursor;
+                        for(let i = 0; i < data.data.length; i = i + 1) {
+                            vm.streamsInfo.push(data.data[i]);
+                        }
+                    });
+                }
+            });
+        }
     }
 })
