@@ -3,9 +3,58 @@ const twitchApiId = "ihjeqjz71u9r6g5qci317ys1fk5v5j";
 const limit = 20; // 每次抓取的資料量
 let cursor = ""; // 每次抓取資料後會在pagination底下獲取cursor的值，用來做為下一次抓取資料時的位置基準點
 
+// title的component
+const title = Vue.component("streamsTitle", {
+    template: `
+        <div :class = "{title_container: true}">
+            <p>{{currentLang?window.I18N[currentLang].TITLE:'目前還沒有選擇語言'}}</p>
+        </div>
+    `,
+    props: {
+        currentLang: {
+            type: String
+        }
+    }
+});
+
+// 更改語言選項的component
+const langChange = Vue.component("streamsLangChange", {
+    template: `
+        <div :class = "{change_lang_container: true}">
+            <p :class = "{change_lang_button: true, change_lang_button_clicked: isEnglish}" @click = "changeLang('en')">
+                English
+            </p>
+            <p :class = "{change_lang_button: true, change_lang_button_clicked: isChinese}" @click = "changeLang('zh')">
+                中文
+            </p>
+        </div>
+    `,
+    data() {
+        return {
+            isEnglish: false,
+            isChinese: false
+        }
+    },
+    methods: {
+        changeLang(lang) {
+            // 先reset
+            this.isEnglish = false;
+            this.isChinese = false;
+
+            if(lang === "en") {
+                this.isEnglish = true;
+                this.$emit("currentLang", lang);
+            }else {
+                this.isChinese = true;
+                this.$emit("currentLang", lang);
+            }
+        }
+    }
+});
+
 // 展示實況圖片、標題、時控主名稱的component
-const display = Vue.component("streamsDisplay",{
-    template:`
+const display = Vue.component("streamsDisplay", {
+    template: `
         <div :class = "{display_container: true}">
             <div :class = "{display_item: true}" v-for = "(item, index) in streamsInfo" key = "item.game_id">
                 <img :class = "{streams_img: true}" :src = "imgSize(item, 250)">
@@ -62,13 +111,20 @@ const vm = new Vue({
     el: "#index_app",
     data() {
         return {
-            streamsInfo: []
+            streamsInfo: [],
+            currentLang: ""
         }
     },
     template:`
-        <streams-display
-            :streamsInfo = "streamsInfo"
-        />
+        <div :class = "{all_container: true}">
+            <streams-title
+                :currentLang = "currentLang"
+            />
+            <streams-lang-change @currentLang = "currentLangChange"/>
+            <streams-display
+                :streamsInfo = "streamsInfo"
+            />
+        </div>
     `,
     mounted() {
         // 在載入Vue實體完成後使用twitch api拿取目前有在直播的遊戲實況資料共20筆
@@ -94,7 +150,7 @@ const vm = new Vue({
                 // this.innerHeight為目前能看到的畫面高度
                 // this.scrollY為目前瀏覽器最上方到目前畫面最上方之間的距離
                 // document.querySelector("body").clientHeight為目前整個網頁的高度
-                if(this.innerHeight + this.scrollY >= document.querySelector("body").clientHeight) {
+                if(this.innerHeight + this.scrollY >= document.querySelector("body").clientHeight && !(vm.currentLang)) {
                     // first參數為每次要拿幾筆資料，默認值為20，最大值為100
                     // after會從cursor提供的位置往後抓取資料
                     // before會從cursor提供的位置往前抓取資料
@@ -112,8 +168,39 @@ const vm = new Vue({
                             vm.streamsInfo.push(data.data[i]);
                         }
                     });
+                }else if(this.innerHeight + this.scrollY >= document.querySelector("body").clientHeight && vm.currentLang) {
+                    fetch(`https://api.twitch.tv/helix/streams?game=League%20of%20Legends&first=${limit}&after=${cursor}&language=${vm.currentLang}`, {
+                        headers: {
+                            "Authorization": `Bearer ${twitchApiToken}`,
+                            "Client-Id": twitchApiId
+                        }
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        // 抓取新的cursor
+                        cursor = data.pagination.cursor;
+                        for(let i = 0; i < data.data.length; i = i + 1) {
+                            vm.streamsInfo.push(data.data[i]);
+                        }
+                    });
                 }
             });
+        },
+        currentLangChange(lang) {
+            vm.currentLang = lang;
+            if(vm.currentLang) {console.log(vm.currentLang);
+                fetch(`https://api.twitch.tv/helix/streams?game=League%20of%20Legends&first=${limit}&language=${vm.currentLang}`, {
+                    headers: {
+                        "Authorization": `Bearer ${twitchApiToken}`,
+                        "Client-Id": twitchApiId
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    cursor = data.pagination.cursor;
+                    this.streamsInfo = data.data;
+                });
+            }
         }
     }
 })

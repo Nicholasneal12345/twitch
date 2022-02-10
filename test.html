@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+        ;(function() {
+            let all = [];
+            let first = [];
+            let second = [];
+            let third = [];
+            let fourth = [];
+
+            //先把52張牌放滿
+            for(let i = 1; i <= 52; i = i + 1) {
+                all.push(i);
+            }
+
+            //照順序分牌
+            for(let i = 0; i < all.length; i = i + 1) {
+                if(i%4 === 0) {
+                    first.push(all[i]);
+                }else if(i%4 === 1) {
+                    second.push(all[i])
+                }else if(i%4 === 2) {
+                    third.push(all[i]);
+                }else {
+                    fourth.push(all[i]);
+                }
+            }
+
+            console.log("正常排1: ", first, "正常排2: ", second, "正常排3: ", third, "正常排4: ", fourth);
+
+            first = [];
+            second = [];
+            third = [];
+            fourth = [];
+
+            //隨機分牌
+            for(let i = 51; i >= 0; i = i - 1) {
+                if(i%4 === 0) {
+                    const randomIndex = Math.floor(Math.random() * (i + 1));
+                    first.push(all[randomIndex]);
+                    all.splice(randomIndex, 1);
+                }else if(i%4 === 1) {
+                    const randomIndex = Math.floor(Math.random() * (i + 1));
+                    second.push(all[randomIndex]);
+                    all.splice(randomIndex, 1);
+                }else if(i%4 === 2) {
+                    const randomIndex = Math.floor(Math.random() * (i + 1));
+                    third.push(all[randomIndex]);
+                    all.splice(randomIndex, 1);
+                }else {
+                    const randomIndex = Math.floor(Math.random() * (i + 1));
+                    fourth.push(all[randomIndex]);
+                    all.splice(randomIndex, 1);
+                }
+            }
+
+            console.log("隨機排1: ", first, "隨機排2: ", second, "隨機排3: ", third, "隨機排4: ", fourth);
+        })()
+    </script>
+</body>
+</html>
